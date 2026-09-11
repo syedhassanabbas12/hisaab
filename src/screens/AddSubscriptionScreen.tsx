@@ -16,7 +16,7 @@ import { RootStackParamList } from '../navigation/types';
 import { useApp } from '../store/AppContext';
 import { categoryOptions, colors, paymentMethodMeta } from '../theme';
 import { BillingCycle, PaymentMethod } from '../types';
-import { addDays, isValidIsoDate } from '../utils/format';
+import { addDays, formatPkr, isValidIsoDate } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddSubscription'>;
 
@@ -87,7 +87,7 @@ export default function AddSubscriptionScreen({ navigation, route }: Props) {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 18 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 18 }}>
         <Text style={styles.title}>{isEditing ? 'Edit subscription' : 'Add subscription'}</Text>
 
         <View style={styles.field}>
@@ -160,10 +160,19 @@ export default function AddSubscriptionScreen({ navigation, route }: Props) {
           </View>
         </View>
 
+      </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <View>
+          <Text style={styles.bottomBarLabel}>{cycle} amount</Text>
+          <Text style={styles.bottomBarValue}>
+            {amount ? formatPkr(Number(amount) || 0) : 'Rs 0'}
+          </Text>
+        </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>{isEditing ? 'Save changes' : 'Add subscription'}</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -194,11 +203,23 @@ const styles = StyleSheet.create({
   },
   quickButtonText: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
   saveButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.heroText,
     paddingVertical: 14,
+    paddingHorizontal: 22,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 8,
   },
-  saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  saveButtonText: { color: colors.heroBg, fontWeight: '700', fontSize: 15 },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.heroBg,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  bottomBarLabel: { color: colors.heroTextMuted, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
+  bottomBarValue: { color: colors.heroText, fontSize: 20, fontWeight: '800', marginTop: 2 },
 });

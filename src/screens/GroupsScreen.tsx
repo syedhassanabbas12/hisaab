@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Card from '../components/Card';
+import IconAvatar from '../components/IconAvatar';
 import { RootStackParamList } from '../navigation/types';
 import { useApp } from '../store/AppContext';
 import { colors } from '../theme';
@@ -46,12 +47,21 @@ export default function GroupsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('GroupDetail', { groupId: item.id })}>
             <Card>
+              <View style={styles.rowTop}>
+                <View style={styles.stack}>
+                  {item.members.slice(0, 4).map((m, idx) => (
+                    <View key={m.id} style={[styles.stackedAvatar, { marginLeft: idx === 0 ? 0 : -12 }]}>
+                      <IconAvatar name={m.name} shape="circle" size={32} />
+                    </View>
+                  ))}
+                </View>
+                <Text style={styles.itemAmount}>{formatPkr(totalsByGroup[item.id] ?? 0)}</Text>
+              </View>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemMeta}>
                 {item.members.length} member{item.members.length === 1 ? '' : 's'} ·{' '}
                 {item.members.map((m) => m.name).join(', ')}
               </Text>
-              <Text style={styles.itemAmount}>{formatPkr(totalsByGroup[item.id] ?? 0)} tracked</Text>
             </Card>
           </TouchableOpacity>
         )}
@@ -77,7 +87,14 @@ const styles = StyleSheet.create({
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
   emptyText: { color: colors.textMuted, lineHeight: 20 },
-  itemName: { fontSize: 16, fontWeight: '700', color: colors.text },
+  rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  stack: { flexDirection: 'row' },
+  stackedAvatar: {
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  itemName: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 10 },
   itemMeta: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
-  itemAmount: { fontSize: 13, fontWeight: '700', color: colors.primaryDark, marginTop: 8 },
+  itemAmount: { fontSize: 15, fontWeight: '800', color: colors.primaryDark },
 });

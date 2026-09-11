@@ -2,6 +2,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card from '../components/Card';
+import HeroCard from '../components/HeroCard';
+import IconAvatar from '../components/IconAvatar';
 import PaymentBadge from '../components/PaymentBadge';
 import { RootStackParamList } from '../navigation/types';
 import { useApp } from '../store/AppContext';
@@ -31,6 +33,11 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
         .filter((e) => e.groupId === groupId)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [expenses, groupId]
+  );
+
+  const groupTotal = useMemo(
+    () => groupExpenses.reduce((sum, e) => sum + e.amountPkr, 0),
+    [groupExpenses]
   );
 
   const balances = useMemo(
@@ -83,7 +90,21 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
           <Text style={styles.deleteLink}>Delete</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.subtitle}>{group.members.map((m) => m.name).join(' · ')}</Text>
+
+      <HeroCard>
+        <Text style={styles.heroLabel}>Total tracked in this group</Text>
+        <Text style={styles.heroNumber}>{formatPkr(groupTotal)}</Text>
+        <View style={styles.memberStackRow}>
+          {group.members.map((m, idx) => (
+            <View key={m.id} style={[styles.stackedAvatar, { marginLeft: idx === 0 ? 0 : -12 }]}>
+              <IconAvatar name={m.name} shape="circle" size={30} />
+            </View>
+          ))}
+          <Text style={styles.heroMemberNames} numberOfLines={1}>
+            {group.members.map((m) => m.name).join(', ')}
+          </Text>
+        </View>
+      </HeroCard>
 
       <TouchableOpacity
         style={styles.addExpenseButton}
@@ -101,7 +122,8 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
             const isZero = Math.abs(bal) < 1;
             return (
               <Card key={m.id} style={styles.balanceCard}>
-                <Text style={styles.itemName}>{m.name}</Text>
+                <IconAvatar name={m.name} shape="circle" size={38} />
+                <Text style={[styles.itemName, { flex: 1 }]}>{m.name}</Text>
                 <Text
                   style={[
                     styles.balanceAmount,
@@ -192,19 +214,18 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
                   ])
                 }
               >
-                <Card>
-                  <View style={styles.rowBetween}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.itemName}>{e.description}</Text>
-                      <Text style={styles.itemMeta}>
-                        Paid by {memberName(group.members, e.paidByMemberId)} · {formatDate(e.date)}
-                      </Text>
+                <Card style={styles.row}>
+                  <IconAvatar name={e.description} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.itemName}>{e.description}</Text>
+                    <Text style={styles.itemMeta}>
+                      Paid by {memberName(group.members, e.paidByMemberId)} · {formatDate(e.date)}
+                    </Text>
+                    <View style={{ marginTop: 6 }}>
+                      <PaymentBadge method={e.paymentMethod} />
                     </View>
-                    <Text style={styles.itemAmount}>{formatPkr(e.amountPkr)}</Text>
                   </View>
-                  <View style={{ marginTop: 8 }}>
-                    <PaymentBadge method={e.paymentMethod} />
-                  </View>
+                  <Text style={styles.itemAmount}>{formatPkr(e.amountPkr)}</Text>
                 </Card>
               </TouchableOpacity>
             ))}
@@ -218,8 +239,12 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
-  subtitle: { fontSize: 13, color: colors.textMuted },
   deleteLink: { color: colors.danger, fontWeight: '700' },
+  heroLabel: { fontSize: 13, color: colors.heroTextMuted, fontWeight: '600' },
+  heroNumber: { fontSize: 30, fontWeight: '800', color: colors.heroText, marginTop: 6 },
+  memberStackRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, gap: 10 },
+  stackedAvatar: { borderRadius: 15, borderWidth: 2, borderColor: colors.heroBg },
+  heroMemberNames: { color: colors.heroTextMuted, fontSize: 12, flexShrink: 1 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
   addExpenseButton: {
     backgroundColor: colors.primary,
@@ -229,11 +254,12 @@ const styles = StyleSheet.create({
   },
   addExpenseButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   itemName: { fontSize: 15, fontWeight: '700', color: colors.text },
   itemMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   itemAmount: { fontSize: 15, fontWeight: '700', color: colors.text },
   emptyText: { color: colors.textMuted, padding: 16 },
-  balanceCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  balanceCard: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   balanceAmount: { fontWeight: '700', fontSize: 14 },
   balancePositive: { color: colors.success },
   balanceNegative: { color: colors.danger },

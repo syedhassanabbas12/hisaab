@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import CustomTabBar from './CustomTabBar';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
 import AddGroupScreen from '../screens/AddGroupScreen';
 import AddSubscriptionScreen from '../screens/AddSubscriptionScreen';
@@ -18,20 +18,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function Tabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarIcon: ({ color, size }) => {
-          const icon =
-            route.name === 'Dashboard'
-              ? 'home'
-              : route.name === 'Subscriptions'
-              ? 'repeat'
-              : 'people';
-          return <Ionicons name={icon as any} size={size} color={color} />;
-        },
-      })}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Subscriptions" component={SubscriptionsScreen} />

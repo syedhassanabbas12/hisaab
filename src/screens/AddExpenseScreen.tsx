@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import ChoiceChips from '../components/ChoiceChips';
+import IconAvatar from '../components/IconAvatar';
 import { RootStackParamList } from '../navigation/types';
 import { useApp } from '../store/AppContext';
 import { colors, paymentMethodMeta } from '../theme';
@@ -86,9 +87,11 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
     navigation.goBack();
   }
 
+  const payer = group.members.find((m) => m.id === paidBy);
+
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 18 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 18 }}>
         <Text style={styles.title}>Add expense</Text>
 
         <View style={styles.field}>
@@ -116,6 +119,13 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
 
         <View style={styles.field}>
           <Text style={styles.label}>Paid by</Text>
+          {payer && (
+            <View style={styles.payerCard}>
+              <IconAvatar name={payer.name} shape="circle" size={40} />
+              <Text style={styles.payerName}>{payer.name}</Text>
+              {parsedAmount > 0 && <Text style={styles.payerAmount}>{formatPkr(parsedAmount)}</Text>}
+            </View>
+          )}
           <ChoiceChips
             options={group.members.map((m) => ({ value: m.id, label: m.name }))}
             value={paidBy}
@@ -134,7 +144,10 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
                   style={[styles.memberRow, active && styles.memberRowActive]}
                   onPress={() => toggleMember(m.id)}
                 >
-                  <Text style={[styles.memberName, active && styles.memberNameActive]}>{m.name}</Text>
+                  <View style={styles.memberRowLeft}>
+                    <IconAvatar name={m.name} shape="circle" size={30} />
+                    <Text style={[styles.memberName, active && styles.memberNameActive]}>{m.name}</Text>
+                  </View>
                   {active && parsedAmount > 0 && (
                     <Text style={styles.shareAmount}>
                       {formatPkr(preview.find((s) => s.memberId === m.id)?.amountPkr ?? 0)}
@@ -154,11 +167,17 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
             onChange={(v) => setPaymentMethod(v as PaymentMethod)}
           />
         </View>
+      </ScrollView>
 
+      <View style={styles.bottomBar}>
+        <View>
+          <Text style={styles.bottomBarLabel}>Total</Text>
+          <Text style={styles.bottomBarValue}>{formatPkr(parsedAmount)}</Text>
+        </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Add expense</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -188,19 +207,45 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
+  memberRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   memberRowActive: { borderColor: colors.primary, backgroundColor: `${colors.primary}10` },
   memberName: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
   memberNameActive: { color: colors.text },
   shareAmount: { fontSize: 13, fontWeight: '700', color: colors.primaryDark },
+  payerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 4,
+  },
+  payerName: { flex: 1, fontSize: 15, fontWeight: '700', color: colors.text },
+  payerAmount: { fontSize: 15, fontWeight: '800', color: colors.primaryDark },
   saveButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.heroText,
     paddingVertical: 14,
+    paddingHorizontal: 22,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 8,
   },
-  saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  saveButtonText: { color: colors.heroBg, fontWeight: '700', fontSize: 15 },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.heroBg,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  bottomBarLabel: { color: colors.heroTextMuted, fontSize: 12, fontWeight: '600' },
+  bottomBarValue: { color: colors.heroText, fontSize: 20, fontWeight: '800', marginTop: 2 },
   emptyText: { color: colors.textMuted, padding: 16 },
 });
